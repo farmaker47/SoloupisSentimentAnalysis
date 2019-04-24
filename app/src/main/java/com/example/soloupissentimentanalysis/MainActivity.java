@@ -19,6 +19,7 @@ import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String stringText;
     private Map<String, Integer> vocabMap = null;
+    private String[] wordsTrancuated;
 
     //Load the tensorflow inference library
     /*static {
@@ -61,13 +63,13 @@ public class MainActivity extends AppCompatActivity {
         tf = new TensorFlowInferenceInterface(getAssets(), MODEL_ASSETS);
 
         //text manipulation
-        stringText = "This movie had the best acting and the dialogue was so good. I loved it.";
+        /*stringText = "This movie had the best acting and the dialogue was so good. I loved it.";*/
+        stringText = "If she fails, then more chaos and upheaval follows, and there’s no chance she can deliver Brexit in time to avoid EU elections. But there’s little to lose by trying -- if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls. if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the pollsif she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls";
 
         float[] value = transformText(stringText);
 
         //make prediction
         predict(value);
-
 
     }
 
@@ -97,9 +99,31 @@ public class MainActivity extends AppCompatActivity {
 
         //Replace Upper case letters and split string
         String[] words = textToFormat.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
+        Log.e("LENGTH", String.valueOf(words.length));
+        if (words.length>=200){
+            wordsTrancuated = Arrays.copyOf(words,200);
+        }else{
+            wordsTrancuated = Arrays.copyOf(words,words.length);
+        }
+
+        Log.e("LENGTH", String.valueOf(wordsTrancuated.length));
+        /*//Make new array with only 200 inputs
+        String[] wordsTrancuated = new String[200];
+        for (int o = 0; o < wordsTrancuated.length; o++) {
+            wordsTrancuated[o] = "nnnn";
+        }
+        Log.e("LENGTH", String.valueOf(words.length));
+        //Trancuate array to 200 length
 
         for (int i = 0; i < words.length; i++) {
-            Log.e("ArrayWords", words[i]);
+            wordsTrancuated[i] = words[i];
+            Log.e("LENGTH", wordsTrancuated[i]);
+        }*/
+        //Transform input array of words to array of integers
+        float[] input = new float[maxLenght]; // 1 sentence by maxLenWords
+        //Make every position 0
+        for (int l = 0; l < maxLenght; l++) {
+            input[l] = 0;
         }
 
         String vocabJson = null;
@@ -121,25 +145,26 @@ public class MainActivity extends AppCompatActivity {
             vocabMap = gson.fromJson(vocabJson, type);
 
             //////////////////////////////////////////////////////////////
-            //Transform input array of words to array of integers
-            float[] input = new float[maxLenght]; // 1 sentence by maxLenWords
-
-            //Make every position 0
-            for (int l = 0; l < input.length; l++) {
-                input[l] = 0;
-            }
 
             //Replace every desired position with numbers
-            int j = 0;
-            for (String word : words) {
-                int index = vocabMap.get(word);
-
-                //Making integer to float
-                input[input.length - words.length + j] = index;
-                j++;
+            int j = 1;
+            for (String word : wordsTrancuated) {
 
                 if (j == maxLenght)
                     break;
+
+                int index = 0;
+                if (vocabMap.containsKey(word)) {
+                    index = vocabMap.get(word);
+
+                    //Making integer to float
+                    input[input.length - wordsTrancuated.length + j] = index;
+                    j++;
+                } /*else {
+                    Log.i("Not found","Word Not Found");
+                    continue;
+                }*/
+
             }
 
             for (int k = 0; k < input.length; k++) {
@@ -149,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             return input;
 
         } catch (Exception e) {
-            Log.e("exception", "notworking");
+            Log.e("exception", e.toString());
             return new float[200];
         }
     }
