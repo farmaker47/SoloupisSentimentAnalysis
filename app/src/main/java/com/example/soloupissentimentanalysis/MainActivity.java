@@ -19,7 +19,8 @@ import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,7 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     private String stringText;
     private Map<String, Integer> vocabMap = null;
-    private String[] wordsTrancuated;
+    /*private String[] wordsTrancuated;*/
+    private ArrayList<String> finalWords;
+    private List<String> wordsTrancuated;
 
     //Load the tensorflow inference library
     /*static {
@@ -64,8 +67,10 @@ public class MainActivity extends AppCompatActivity {
 
         //text manipulation
         /*stringText = "This movie had the best acting and the dialogue was so good. I loved it.";*/
+/*
         stringText = "If she fails, then more chaos and upheaval follows, and there’s no chance she can deliver Brexit in time to avoid EU elections. But there’s little to lose by trying -- if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls. if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the pollsif she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls";
-
+*/
+        stringText = "Tesla's Autonomy Day presentation yesterday showed a lot of fascinating details about Autopilot. I'll cover key ideas in future videos. 100,000 automated lanes changes per day is just incredible. But please take my humble advice: no matter what, keep your eyes on the road.";
         float[] value = transformText(stringText);
 
         //make prediction
@@ -99,14 +104,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Replace Upper case letters and split string
         String[] words = textToFormat.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
-        Log.e("LENGTH", String.valueOf(words.length));
-        if (words.length>=200){
-            wordsTrancuated = Arrays.copyOf(words,200);
-        }else{
-            wordsTrancuated = Arrays.copyOf(words,words.length);
-        }
-
-        Log.e("LENGTH", String.valueOf(wordsTrancuated.length));
+        /*Log.e("LENGTH", String.valueOf(words.length));*/
+        /*Log.e("LENGTH", String.valueOf(wordsTrancuated.length));*/
+        /*for (int i = 0; i < words.length; i++) {
+            wordsTrancuated[i] = words[i];
+            Log.e("LENGTH", wordsTrancuated[i]);
+        }*/
         /*//Make new array with only 200 inputs
         String[] wordsTrancuated = new String[200];
         for (int o = 0; o < wordsTrancuated.length; o++) {
@@ -145,9 +148,35 @@ public class MainActivity extends AppCompatActivity {
             vocabMap = gson.fromJson(vocabJson, type);
 
             //////////////////////////////////////////////////////////////
+            //Find words that exist in vocabulary
+            int p = 0;
+            finalWords = new ArrayList<>();
+            for (String word : words) {
+                if (vocabMap.containsKey(word)) {
+                    finalWords.add(word);
+                    p++;
+                }
+            }
+            Log.e("LENGTH", String.valueOf(finalWords.size()));
+            //////////////////////////////////////////////////////////////
+            //Trancuate
+            if (finalWords.size() >= 200) {
+                wordsTrancuated = finalWords.subList(0, 200);
+                Log.e("LENGTH", "BIGGER");
+            } else {
+                wordsTrancuated = finalWords.subList(0, finalWords.size());
+                Log.e("LENGTH", "SMALLER");
+            }
+            /////////////////////////////////////////////////////////////
 
+            ///////////////////////////////////////////////////
             //Replace every desired position with numbers
-            int j = 1;
+            /*for (int e = 0; e < wordsTrancuated.size(); e++) {
+                int index = 0;
+                index = vocabMap.get(word);
+
+            }*/
+            int j = 0;
             for (String word : wordsTrancuated) {
 
                 if (j == maxLenght)
@@ -158,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                     index = vocabMap.get(word);
 
                     //Making integer to float
-                    input[input.length - wordsTrancuated.length + j] = index;
+                    input[input.length - wordsTrancuated.size() + j] = index;
                     j++;
                 } /*else {
                     Log.i("Not found","Word Not Found");
@@ -166,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
                 }*/
 
             }
+            /////////////////////////////////////////////////////
 
             for (int k = 0; k < input.length; k++) {
                 Log.e("ArrayWords", String.valueOf(input[k]));
