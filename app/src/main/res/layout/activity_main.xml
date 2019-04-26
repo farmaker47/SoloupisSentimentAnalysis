@@ -23,11 +23,19 @@
     <include layout="@layout/content_main" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabPhoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_gravity="bottom|right"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_photo_camera_white" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabFiles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/ic_insert_drive_file_white" />
 
 </android.support.design.widget.CoordinatorLayout>

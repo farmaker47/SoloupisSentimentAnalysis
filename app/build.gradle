@@ -33,6 +33,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.2'
     //ML Kit Text recognition
     implementation 'com.google.firebase:firebase-ml-vision:19.0.3'
+    //CropView
+    implementation 'com.isseiaoki:simplecropview:1.1.4'
 }
 
 apply plugin: 'com.google.gms.google-services'

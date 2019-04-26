@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Camera field
     private static final int CAMERA_REQUEST = 1888;
+    private static final int PICK_FROM_FILE = 4;
 
     private TextView resultView;
     private ImageView imageView;
@@ -81,11 +83,18 @@ public class MainActivity extends AppCompatActivity {
         resultView = findViewById(R.id.textViewResult);
         imageView = findViewById(R.id.imageViewPhoto);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fabPhoto = findViewById(R.id.fabPhoto);
+        fabPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 takePicture();
+            }
+        });
+        FloatingActionButton fabFiles = findViewById(R.id.fabPhoto);
+        fabFiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectFile();
             }
         });
 
@@ -323,6 +332,19 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
 
+        }else if(requestCode == PICK_FROM_FILE){
+            Uri myUri = data.getData();
+            Intent nextScreen = new Intent(this, EditActivity.class);
+            nextScreen.putExtra("imageUri", myUri);
+            nextScreen.putExtra("Choose", PICK_FROM_FILE);
+            startActivity(nextScreen);
         }
+    }
+
+    private void selectFile() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction("android.intent.action.GET_CONTENT");
+        startActivityForResult(Intent.createChooser(intent, "Load Image"), PICK_FROM_FILE);
     }
 }
