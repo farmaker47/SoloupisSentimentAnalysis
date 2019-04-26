@@ -1,6 +1,12 @@
 package com.example.soloupissentimentanalysis;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,7 +15,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.text.FirebaseVisionText;
+import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -17,6 +33,8 @@ import com.google.gson.reflect.TypeToken;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -42,6 +60,12 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> finalWords;
     private List<String> wordsTrancuated;
 
+    //Camera field
+    private static final int CAMERA_REQUEST = 1888;
+
+    private TextView resultView;
+    private ImageView imageView;
+
     //Load the tensorflow inference library
     /*static {
         System.loadLibrary("tensorflow_inference");
@@ -54,12 +78,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        resultView = findViewById(R.id.textViewResult);
+        imageView = findViewById(R.id.imageViewPhoto);
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                takePicture();
             }
         });
 
@@ -70,11 +96,13 @@ public class MainActivity extends AppCompatActivity {
 /*
         stringText = "If she fails, then more chaos and upheaval follows, and there’s no chance she can deliver Brexit in time to avoid EU elections. But there’s little to lose by trying -- if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls. if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the pollsif she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls";
 */
+/*
         stringText = "Tesla's Autonomy Day presentation yesterday showed a lot of fascinating details about Autopilot. I'll cover key ideas in future videos. 100,000 automated lanes changes per day is just incredible. But please take my humble advice: no matter what, keep your eyes on the road.";
-        float[] value = transformText(stringText);
+*/
+        /*float[] value = transformText(stringText);
 
         //make prediction
-        predict(value);
+        predict(value);*/
 
     }
 
@@ -244,4 +272,57 @@ public class MainActivity extends AppCompatActivity {
         Log.e("Output", "TF output: " + (outputs[0]));
     }
 
+    private void takePicture() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            Bitmap picture = (Bitmap) data.getExtras().get("data");//this is your bitmap image and now you can do whatever you want with this
+
+            /*AssetManager assetManager = getAssets();
+            InputStream istr = null;
+            try {
+                istr = assetManager.open("maySay.jpg");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Bitmap bitmapMay = BitmapFactory.decodeStream(istr);*/
+
+            imageView.setImageBitmap(picture);
+            //Proceed to recognise text
+            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(picture);
+            FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
+                    .getOnDeviceTextRecognizer();
+
+            //pass the image to the detector
+            Task<FirebaseVisionText> result =
+                    detector.processImage(image)
+                            .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+                                @Override
+                                public void onSuccess(FirebaseVisionText firebaseVisionText) {
+                                    // Task completed successfully
+                                    // ...
+
+                                    Log.e("RECOG",firebaseVisionText.getText());
+                                    float[] value = transformText(firebaseVisionText.getText());
+                                    //make prediction
+                                    predict(value);
+
+                                }
+                            })
+                            .addOnFailureListener(
+                                    new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            // Task failed with an exception
+                                            // ...
+                                        }
+                                    });
+
+        }
+    }
 }

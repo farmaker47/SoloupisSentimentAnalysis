@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "909767416357",
+    "firebase_url": "https://euzin-dc467.firebaseio.com",
+    "project_id": "euzin-dc467",
+    "storage_bucket": "euzin-dc467.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:909767416357:android:a35d7d0cb63076c6",
+        "android_client_info": {
+          "package_name": "com.euzin.android.viewpager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "909767416357-75528bl3eqifl0jhbgsoj7ftgpj263v8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJFKesTdvQs_dfl8-PODyWE-EGWFJg3CY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "909767416357-75528bl3eqifl0jhbgsoj7ftgpj263v8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:909767416357:android:069a8917f077f0bd",
+        "android_client_info": {
+          "package_name": "com.example.soloupissentimentanalysis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "909767416357-75528bl3eqifl0jhbgsoj7ftgpj263v8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJFKesTdvQs_dfl8-PODyWE-EGWFJg3CY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "909767416357-75528bl3eqifl0jhbgsoj7ftgpj263v8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
