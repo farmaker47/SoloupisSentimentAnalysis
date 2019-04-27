@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.soloupissentimentanalysis.camera.PreviewCamera;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -34,6 +36,7 @@ import com.google.gson.reflect.TypeToken;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -90,11 +93,18 @@ public class MainActivity extends AppCompatActivity {
                 takePicture();
             }
         });
-        FloatingActionButton fabFiles = findViewById(R.id.fabPhoto);
+        FloatingActionButton fabFiles = findViewById(R.id.fabFiles);
         fabFiles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 selectFile();
+            }
+        });
+        FloatingActionButton fabResults = findViewById(R.id.fabResults);
+        fabResults.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getCroppedImage();
             }
         });
 
@@ -113,6 +123,19 @@ public class MainActivity extends AppCompatActivity {
         //make prediction
         predict(value);*/
 
+    }
+
+    private void getCroppedImage() {
+        File file = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Sentiment");
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        String uriSting = (file.getAbsolutePath() + "/"
+                + "IMG_" + "cropped_bitmap" + ".jpg");
+
+        Bitmap croppedBitmap = BitmapFactory.decodeFile(uriSting);
+
+        setImageAndPredict(croppedBitmap);
     }
 
     @Override
@@ -282,8 +305,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void takePicture() {
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        /*Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, CAMERA_REQUEST);*/
+        Intent a = new Intent(MainActivity.this, PreviewCamera.class);
+        startActivity(a);
     }
 
     @Override
@@ -300,37 +325,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             Bitmap bitmapMay = BitmapFactory.decodeStream(istr);*/
-
-            imageView.setImageBitmap(picture);
-            //Proceed to recognise text
-            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(picture);
-            FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
-                    .getOnDeviceTextRecognizer();
-
-            //pass the image to the detector
-            Task<FirebaseVisionText> result =
-                    detector.processImage(image)
-                            .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
-                                @Override
-                                public void onSuccess(FirebaseVisionText firebaseVisionText) {
-                                    // Task completed successfully
-                                    // ...
-
-                                    Log.e("RECOG",firebaseVisionText.getText());
-                                    float[] value = transformText(firebaseVisionText.getText());
-                                    //make prediction
-                                    predict(value);
-
-                                }
-                            })
-                            .addOnFailureListener(
-                                    new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            // Task failed with an exception
-                                            // ...
-                                        }
-                                    });
+            setImageAndPredict(picture);
 
         }else if(requestCode == PICK_FROM_FILE){
             Uri myUri = data.getData();
@@ -347,4 +342,39 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction("android.intent.action.GET_CONTENT");
         startActivityForResult(Intent.createChooser(intent, "Load Image"), PICK_FROM_FILE);
     }
+
+    private void setImageAndPredict(Bitmap bitmap){
+        imageView.setImageBitmap(bitmap);
+        //Proceed to recognise text
+        FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
+        FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
+                .getOnDeviceTextRecognizer();
+
+        //pass the image to the detector
+        Task<FirebaseVisionText> result =
+                detector.processImage(image)
+                        .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+                            @Override
+                            public void onSuccess(FirebaseVisionText firebaseVisionText) {
+                                // Task completed successfully
+                                // ...
+
+                                Log.e("RECOG",firebaseVisionText.getText());
+                                float[] value = transformText(firebaseVisionText.getText());
+                                //make prediction
+                                predict(value);
+
+                            }
+                        })
+                        .addOnFailureListener(
+                                new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Task failed with an exception
+                                        // ...
+                                    }
+                                });
+
+    }
+
 }
