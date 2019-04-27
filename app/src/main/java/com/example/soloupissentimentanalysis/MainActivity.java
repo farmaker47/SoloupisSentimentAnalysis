@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     private static final int PICK_FROM_FILE = 4;
 
-    private TextView resultView;
+    private TextView resultView,resultText;
     private ImageView imageView;
 
     //Load the tensorflow inference library
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
         resultView = findViewById(R.id.textViewResult);
         imageView = findViewById(R.id.imageViewPhoto);
+        resultText = findViewById(R.id.textViewText);
 
         FloatingActionButton fabPhoto = findViewById(R.id.fabPhoto);
         fabPhoto.setOnClickListener(new View.OnClickListener() {
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         imageView.setImageDrawable(getDrawable(R.drawable.ic_image_grey_80dp));
         resultView.setText("");
+        resultText.setText("");
     }
 
     private void getCroppedImage() {
@@ -230,10 +232,10 @@ public class MainActivity extends AppCompatActivity {
             //Trancuate
             if (finalWords.size() >= 200) {
                 wordsTrancuated = finalWords.subList(0, 200);
-                Log.e("LENGTH", "BIGGER");
+                Log.i("LENGTH", "BIGGER");
             } else {
                 wordsTrancuated = finalWords.subList(0, finalWords.size());
-                Log.e("LENGTH", "SMALLER");
+                Log.i("LENGTH", "SMALLER");
             }
             /////////////////////////////////////////////////////////////
 
@@ -283,8 +285,8 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 185; i++) {
             value[i] = 0;
         }
-        value[185] = 11;
-        value[186] = 18;
+        value[185] = 11f;
+        value[186] = 18f;
         value[187] = 68;
         value[188] = 1;
         value[189] = 117;
@@ -370,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
             Bitmap bitmapMay = BitmapFactory.decodeStream(istr);*/
             /*setImageAndPredict(picture);*/
 
-            Log.e("OKIntent", "ok");
             /*Intent a = new Intent(MainActivity.this, PreviewCamera.class);
             startActivity(a);*/
 
@@ -417,7 +418,8 @@ public class MainActivity extends AppCompatActivity {
                                 // Task completed successfully
                                 // ...
 
-                                Log.e("RECOG", firebaseVisionText.getText());
+                                Log.i("RECOG", firebaseVisionText.getText());
+                                resultText.setText(firebaseVisionText.getText());
                                 float[] value = transformText(firebaseVisionText.getText());
                                 //make prediction
                                 predict(value);
