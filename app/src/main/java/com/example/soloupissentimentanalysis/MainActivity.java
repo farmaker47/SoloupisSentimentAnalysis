@@ -52,16 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String MODEL_ASSETS = "keras_sentiment.pb";
     private String INPUT_NAME = "embedding_2_input";
     private String OUTPUT_NAME = "output_1";
-    float[] PREDICTIONS = new float[1000];
     private static final String vocabFilename = "result.json";
 
     public static final int POS_LABEL = 1;
     public static final int NEG_LABEL = 0;
     private static final int maxLenght = 200;
 
-    private String stringText;
     private Map<String, Integer> vocabMap = null;
-    /*private String[] wordsTrancuated;*/
     private ArrayList<String> finalWords;
     private List<String> wordsTrancuated;
 
@@ -69,13 +66,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 1888;
     private static final int PICK_FROM_FILE = 4;
 
-    private TextView resultView,resultText;
-    private ImageView imageView;
-
-    //Load the tensorflow inference library
-    /*static {
-        System.loadLibrary("tensorflow_inference");
-    }*/
+    private TextView resultView, resultText;
+    private ImageView imageView, imageSentiment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         resultView = findViewById(R.id.textViewResult);
         imageView = findViewById(R.id.imageViewPhoto);
         resultText = findViewById(R.id.textViewText);
+        imageSentiment = findViewById(R.id.imageSentiment);
 
         FloatingActionButton fabPhoto = findViewById(R.id.fabPhoto);
         fabPhoto.setOnClickListener(new View.OnClickListener() {
@@ -110,21 +103,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Initialize inference
         tf = new TensorFlowInferenceInterface(getAssets(), MODEL_ASSETS);
-
-        //text manipulation
-        /*stringText = "This movie had the best acting and the dialogue was so good. I loved it.";*/
-/*
-        stringText = "If she fails, then more chaos and upheaval follows, and there’s no chance she can deliver Brexit in time to avoid EU elections. But there’s little to lose by trying -- if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls. if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the pollsif she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls if she doesn’t put the bill to Parliament in the next couple of weeks, there’s no way the U.K. can leave before the polls";
-*/
-/*
-        stringText = "Tesla's Autonomy Day presentation yesterday showed a lot of fascinating details about Autopilot. I'll cover key ideas in future videos. 100,000 automated lanes changes per day is just incredible. But please take my humble advice: no matter what, keep your eyes on the road.";
-*/
-        /*float[] value = transformText(stringText);
-
-        //make prediction
-        predict(value);*/
-
     }
 
     @Override
@@ -135,7 +115,15 @@ public class MainActivity extends AppCompatActivity {
         resultText.setText("");
     }
 
-    private void getCroppedImage() {
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e("restart", "restart");
+        imageSentiment.setImageDrawable(null);
+        getCroppedImage();
+    }
+
+    public void getCroppedImage() {
         File file = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Sentiment");
         if (!file.exists()) {
             file.mkdirs();
@@ -145,7 +133,10 @@ public class MainActivity extends AppCompatActivity {
 
         Bitmap croppedBitmap = BitmapFactory.decodeFile(uriSting);
 
-        setImageAndPredict(croppedBitmap);
+        if (croppedBitmap != null) {
+            setImageAndPredict(croppedBitmap);
+        }
+
     }
 
     @Override
@@ -172,27 +163,9 @@ public class MainActivity extends AppCompatActivity {
 
     private float[] transformText(String textToFormat) {
 
-        //Replace Upper case letters and split string
+        //Replace Upper case letters,rmeove panctuation and split string
         String[] words = textToFormat.replaceAll("[^a-zA-Z ]", "").toLowerCase().split("\\s+");
-        /*Log.e("LENGTH", String.valueOf(words.length));*/
-        /*Log.e("LENGTH", String.valueOf(wordsTrancuated.length));*/
-        /*for (int i = 0; i < words.length; i++) {
-            wordsTrancuated[i] = words[i];
-            Log.e("LENGTH", wordsTrancuated[i]);
-        }*/
-        /*//Make new array with only 200 inputs
-        String[] wordsTrancuated = new String[200];
-        for (int o = 0; o < wordsTrancuated.length; o++) {
-            wordsTrancuated[o] = "nnnn";
-        }
-        Log.e("LENGTH", String.valueOf(words.length));
-        //Trancuate array to 200 length
-
-        for (int i = 0; i < words.length; i++) {
-            wordsTrancuated[i] = words[i];
-            Log.e("LENGTH", wordsTrancuated[i]);
-        }*/
-        //Transform input array of words to array of integers
+        //Initialize an input array with maxSize length
         float[] input = new float[maxLenght]; // 1 sentence by maxLenWords
         //Make every position 0
         for (int l = 0; l < maxLenght; l++) {
@@ -227,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                     p++;
                 }
             }
-            Log.e("LENGTH", String.valueOf(finalWords.size()));
+            Log.i("LENGTH", String.valueOf(finalWords.size()));
             //////////////////////////////////////////////////////////////
             //Trancuate
             if (finalWords.size() >= 200) {
@@ -240,12 +213,7 @@ public class MainActivity extends AppCompatActivity {
             /////////////////////////////////////////////////////////////
 
             ///////////////////////////////////////////////////
-            //Replace every desired position with numbers
-            /*for (int e = 0; e < wordsTrancuated.size(); e++) {
-                int index = 0;
-                index = vocabMap.get(word);
-
-            }*/
+            //Padding sequence of maxSize length with integers of final words
             int j = 0;
             for (String word : wordsTrancuated) {
 
@@ -259,14 +227,12 @@ public class MainActivity extends AppCompatActivity {
                     //Making integer to float
                     input[input.length - wordsTrancuated.size() + j] = index;
                     j++;
-                } /*else {
-                    Log.i("Not found","Word Not Found");
-                    continue;
-                }*/
+                }
 
             }
             /////////////////////////////////////////////////////
 
+            //Check all input array
             for (int k = 0; k < input.length; k++) {
                 Log.e("ArrayWords", String.valueOf(input[k]));
             }
@@ -280,27 +246,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void predict(float[] value) {
-        /*float[] value = new float[200];
-
-        for (int i = 0; i < 185; i++) {
-            value[i] = 0;
-        }
-        value[185] = 11f;
-        value[186] = 18f;
-        value[187] = 68;
-        value[188] = 1;
-        value[189] = 117;
-        value[190] = 113;
-        value[191] = 2;
-        value[192] = 1;
-        value[193] = 410;
-        value[194] = 14;
-        value[195] = 37;
-        value[196] = 50;
-        value[197] = 10;
-        value[198] = 445;
-        value[199] = 8;*/
-        Log.e("valueofPredict", String.valueOf(value[199]));
+        Log.d("valueofPredict", String.valueOf(value[199]));
 
         tf.feed(INPUT_NAME, value, 1, 200);
 
@@ -311,8 +257,14 @@ public class MainActivity extends AppCompatActivity {
 
         tf.fetch(OUTPUT_NAME, outputs);
 
-        Log.e("Output", "TF output: " + (outputs[0]));
+        Log.d("Output", "TF output: " + (outputs[0]));
         resultView.setText(String.valueOf(outputs[0]));
+        ///Update sentiment ImageView
+        if (outputs[0] >= 0.5) {
+            imageSentiment.setImageDrawable(getDrawable(R.drawable.ic_thumb_up_black_24dp));
+        } else {
+            imageSentiment.setImageDrawable(getDrawable(R.drawable.ic_thumb_down_black_24dp));
+        }
     }
 
     String currentPhotoPath;
@@ -359,8 +311,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            /*Bitmap picture = (Bitmap) data.getExtras().get("data");*/
-            //this is your bitmap image and now you can do whatever you want with this
 
             /*AssetManager assetManager = getAssets();
             InputStream istr = null;
@@ -371,9 +321,6 @@ public class MainActivity extends AppCompatActivity {
             }
             Bitmap bitmapMay = BitmapFactory.decodeStream(istr);*/
             /*setImageAndPredict(picture);*/
-
-            /*Intent a = new Intent(MainActivity.this, PreviewCamera.class);
-            startActivity(a);*/
 
             Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             File f = new File(currentPhotoPath);
@@ -402,8 +349,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(intent, "Load Image"), PICK_FROM_FILE);
     }
 
-    private void setImageAndPredict(Bitmap bitmap) {
-        imageView.setImageBitmap(bitmap);
+    private void setImageAndPredict(final Bitmap bitmap) {
         //Proceed to recognise text
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
         FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
@@ -418,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
                                 // Task completed successfully
                                 // ...
 
+                                imageView.setImageBitmap(bitmap);
                                 Log.i("RECOG", firebaseVisionText.getText());
                                 resultText.setText(firebaseVisionText.getText());
                                 float[] value = transformText(firebaseVisionText.getText());

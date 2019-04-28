@@ -73,6 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
+        android:layout_marginBottom="8dp"
         android:orientation="vertical">
 
         <TextView
@@ -80,9 +81,9 @@
             android:layout_height="wrap_content"
             android:background="#ffffff"
             android:gravity="center"
-            android:text="  Αν το κείμενο στη φωτογραφία δεν είναι απο αριστερά προς τα δεξιά,τότε κάντε περιστροφή της φωτογραφίας  "
+            android:text="@string/rotateIfNecessary"
             android:textColor="#000"
-            android:textSize="13.0dip" />
+            android:textSize="20sp" />
 
         <LinearLayout
             android:id="@+id/dyn_layout_bot"
@@ -115,7 +116,8 @@
                 android:layout_weight="1.0"
                 android:background="#ffffff"
                 android:onClick="btnKeyStoneclick"
-                android:src="@drawable/crop" />
+                android:src="@drawable/crop"
+                android:visibility="invisible"/>
 
             <ImageButton
                 android:id="@+id/btnRotateRight"
